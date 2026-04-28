@@ -72,7 +72,7 @@ else
 fi
 
 # 8. Формируем ссылку
-LINK="https://t.me/proxy?server=${IP}&port=443&secret=${SECRET}"
+LINK="https://t.me/proxy?server=${IP}&port=8443&secret=${SECRET}"
 
 echo ""
 echo "========================================="
