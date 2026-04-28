@@ -34,13 +34,14 @@ docker run -d \
 sleep 3
 
 echo ""
-echo "📋 Используй эту ссылку в @MTProxybot:"
-echo "tg://proxy?server=${IP}&port=8443&secret=${SECRET}"
+echo "📋 Используй это в @MTProxybot:"
+echo "${IP}:8443"
+echo "${SECRET}"
 echo ""
 echo "👉 Шаги:"
 echo "1. Открой @MTProxybot"
 echo "2. /newproxy"
-echo "3. Вставь ссылку выше"
+echo "3. Вставь необходимые данные"
 echo "4. Получи TAG"
 echo ""
 
