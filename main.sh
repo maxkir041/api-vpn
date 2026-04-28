@@ -44,7 +44,7 @@ check_tty
 
 # STEP 1
 run_step "Set time + reboot script" \
-"bash <(curl -fsSL https://raw.githubusercontent.com/maxkir041/api-vpn/refs/heads/main/set_time_and_reboot)"
+"bash <(curl -fsSL https://raw.githubusercontent.com/maxkir041/api-vpn/refs/heads/main/set_time_and_reboot.sh)"
 
 # STEP 2
 run_step "Install MTProto proxy" \
