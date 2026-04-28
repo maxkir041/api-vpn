@@ -21,9 +21,8 @@ else
 fi
 
 # 2. Генерируем fake-TLS секрет
-# Формат: ee + 16 случайных байт + 7mpNQIygFFNIF3DCdG2Z0ep3d3cuaWNsb3VkLmNvbQ (www.icloud.com)
-RAND_PART=$(head -c 16 /dev/urandom | xxd -ps -c 256)
-SECRET="ee${RAND_PART}7mpNQIygFFNIF3DCdG2Z0ep3d3cuaWNsb3VkLmNvbQ"
+# Формат: ee + b1304a83a6a2f83e022cafc38a0edefd + 7mpNQIygFFNIF3DCdG2Z0ep3d3cuaWNsb3VkLmNvbQ (www.icloud.com)
+SECRET="eeb1304a83a6a2f83e022cafc38a0edefd7mpNQIygFFNIF3DCdG2Z0ep3d3cuaWNsb3VkLmNvbQ"
 echo "🔑 Сгенерирован fake-TLS секрет"
 
 # 3. Определяем IP (принудительно IPv4)
