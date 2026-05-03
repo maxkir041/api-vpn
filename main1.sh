@@ -6,7 +6,7 @@ mkdir -p /var/log
 exec > >(tee -a "$LOG") 2>&1
 
 echo "======================================"
-echo "🚀 ANTI-HANG INSTALLER"
+echo "🚀 ZERO-BUG INSTALLER"
 echo "======================================"
 
 pause() {
@@ -18,29 +18,27 @@ download() {
   URL="$1"
   FILE="$2"
 
-  echo "🌐 Пробую скачать: $URL"
+  echo "🌐 Download: $URL"
 
   HTTP_CODE=$(curl -m 15 --retry 3 --retry-delay 2 -s -o "$FILE" -w "%{http_code}" "$URL")
 
-  if [ "$HTTP_CODE" = "200" ]; then
-    echo "✅ OK (GitHub)"
-    return 0
+  if [ "$HTTP_CODE" != "200" ]; then
+    echo "❌ HTTP ERROR: $HTTP_CODE"
+    exit 1
   fi
 
-  echo "⚠️ GitHub не ответил ($HTTP_CODE), пробую CDN..."
-
-  # fallback через jsdelivr
-  CDN_URL=$(echo "$URL" | sed 's#raw.githubusercontent.com#cdn.jsdelivr.net/gh#; s#/main/#@main/#')
-
-  HTTP_CODE=$(curl -m 15 --retry 2 -s -o "$FILE" -w "%{http_code}" "$CDN_URL")
-
-  if [ "$HTTP_CODE" = "200" ]; then
-    echo "✅ OK (CDN fallback)"
-    return 0
+  if [ ! -s "$FILE" ]; then
+    echo "❌ Файл пустой: $FILE"
+    exit 1
   fi
 
-  echo "❌ Ошибка загрузки: $URL"
-  exit 1
+  # Проверка что это bash-скрипт
+  if ! head -n 1 "$FILE" | grep -q "bash"; then
+    echo "❌ Файл не похож на bash-скрипт"
+    exit 1
+  fi
+
+  echo "✅ OK (size: $(stat -c%s "$FILE") bytes)"
 }
 
 run_step() {
@@ -54,7 +52,7 @@ run_step() {
 
   download "$URL" "$FILE"
 
-  echo "🚀 Запуск $FILE"
+  echo "🚀 Запуск..."
   bash "$FILE"
 
   echo "✅ OK: $NAME"
@@ -63,7 +61,7 @@ run_step() {
 
 # защита от non-interactive
 if [ ! -t 0 ]; then
-  echo "⚠️ Non-interactive mode detected (используется /dev/tty)"
+  echo "⚠️ Non-interactive mode (используем /dev/tty)"
 fi
 
 # STEP 1
@@ -78,6 +76,6 @@ run_step "Install 3x-ui panel" \
 
 echo ""
 echo "======================================"
-echo "🎉 DONE WITHOUT HANGS"
+echo "🎉 ВСЁ ГОТОВО"
 echo "📄 LOG: $LOG"
 echo "======================================"
