@@ -6,7 +6,7 @@ mkdir -p /var/log
 exec > >(tee -a "$LOG") 2>&1
 
 echo "======================================"
-echo "🚀 PRO INSTALLER (SAFE MODE)"
+echo "🚀 ANTI-HANG INSTALLER"
 echo "======================================"
 
 pause() {
@@ -14,21 +14,33 @@ pause() {
   read -p "⏸ Нажми ENTER для продолжения..." < /dev/tty
 }
 
-download_and_run() {
+download() {
   URL="$1"
   FILE="$2"
 
-  echo "🌐 Downloading: $URL"
+  echo "🌐 Пробую скачать: $URL"
 
-  HTTP_CODE=$(curl -s -o "$FILE" -w "%{http_code}" "$URL")
+  HTTP_CODE=$(curl -m 15 --retry 3 --retry-delay 2 -s -o "$FILE" -w "%{http_code}" "$URL")
 
-  if [ "$HTTP_CODE" != "200" ]; then
-    echo "❌ Ошибка загрузки ($HTTP_CODE): $URL"
-    exit 1
+  if [ "$HTTP_CODE" = "200" ]; then
+    echo "✅ OK (GitHub)"
+    return 0
   fi
 
-  echo "▶️ Запуск $FILE"
-  bash "$FILE"
+  echo "⚠️ GitHub не ответил ($HTTP_CODE), пробую CDN..."
+
+  # fallback через jsdelivr
+  CDN_URL=$(echo "$URL" | sed 's#raw.githubusercontent.com#cdn.jsdelivr.net/gh#; s#/main/#@main/#')
+
+  HTTP_CODE=$(curl -m 15 --retry 2 -s -o "$FILE" -w "%{http_code}" "$CDN_URL")
+
+  if [ "$HTTP_CODE" = "200" ]; then
+    echo "✅ OK (CDN fallback)"
+    return 0
+  fi
+
+  echo "❌ Ошибка загрузки: $URL"
+  exit 1
 }
 
 run_step() {
@@ -40,15 +52,18 @@ run_step() {
   echo "▶️ $NAME"
   echo "--------------------------------------"
 
-  download_and_run "$URL" "$FILE"
+  download "$URL" "$FILE"
+
+  echo "🚀 Запуск $FILE"
+  bash "$FILE"
 
   echo "✅ OK: $NAME"
   pause
 }
 
-# Проверка TTY
+# защита от non-interactive
 if [ ! -t 0 ]; then
-  echo "⚠️ Non-interactive mode detected (OK, using /dev/tty)"
+  echo "⚠️ Non-interactive mode detected (используется /dev/tty)"
 fi
 
 # STEP 1
@@ -59,10 +74,10 @@ run_step "Set time + reboot" \
 # STEP 2
 run_step "Install 3x-ui panel" \
 "https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh" \
-"/tmp/3x-ui.sh"
+"/tmp/xui.sh"
 
 echo ""
 echo "======================================"
-echo "🎉 INSTALLATION COMPLETED"
+echo "🎉 DONE WITHOUT HANGS"
 echo "📄 LOG: $LOG"
 echo "======================================"
