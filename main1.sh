@@ -3,24 +3,24 @@ set -e
 
 LOG="/var/log/bootstrap.log"
 mkdir -p /var/log
-exec > >(tee -a "$LOG") 2>&1
 
 echo "======================================"
-echo "🚀 ZERO-BUG INSTALLER"
+echo "🚀 PIPE-SAFE INSTALLER (FINAL)"
 echo "======================================"
 
 pause() {
   echo ""
-  read -p "⏸ Нажми ENTER для продолжения..." < /dev/tty
+  read -p "⏸ ENTER to continue..." < /dev/tty
 }
 
-download() {
+download_and_run() {
   URL="$1"
   FILE="$2"
 
+  echo ""
   echo "🌐 Download: $URL"
 
-  HTTP_CODE=$(curl -m 15 --retry 3 --retry-delay 2 -s -o "$FILE" -w "%{http_code}" "$URL")
+  HTTP_CODE=$(curl -m 20 --retry 3 -s -o "$FILE" -w "%{http_code}" "$URL")
 
   if [ "$HTTP_CODE" != "200" ]; then
     echo "❌ HTTP ERROR: $HTTP_CODE"
@@ -28,17 +28,14 @@ download() {
   fi
 
   if [ ! -s "$FILE" ]; then
-    echo "❌ Файл пустой: $FILE"
+    echo "❌ EMPTY FILE: $FILE"
     exit 1
   fi
 
-  # Проверка что это bash-скрипт
-  if ! head -n 1 "$FILE" | grep -q "bash"; then
-    echo "❌ Файл не похож на bash-скрипт"
-    exit 1
-  fi
+  chmod +x "$FILE"
 
-  echo "✅ OK (size: $(stat -c%s "$FILE") bytes)"
+  echo "🚀 Running..."
+  bash "$FILE"
 }
 
 run_step() {
@@ -50,32 +47,30 @@ run_step() {
   echo "▶️ $NAME"
   echo "--------------------------------------"
 
-  download "$URL" "$FILE"
+  download_and_run "$URL" "$FILE"
 
-  echo "🚀 Запуск..."
-  bash "$FILE"
+  echo "✅ DONE: $NAME"
 
-  echo "✅ OK: $NAME"
   pause
 }
 
-# защита от non-interactive
+# detect non-interactive
 if [ ! -t 0 ]; then
-  echo "⚠️ Non-interactive mode (используем /dev/tty)"
+  echo "⚠️ Non-interactive mode detected (using /dev/tty for input)"
 fi
 
 # STEP 1
 run_step "Set time + reboot" \
 "https://raw.githubusercontent.com/maxkir041/api-vpn/main/set_time_and_reboot.sh" \
-"/tmp/set_time.sh"
+"/tmp/time.sh"
 
 # STEP 2
-run_step "Install 3x-ui panel" \
+run_step "Install 3x-ui" \
 "https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh" \
 "/tmp/xui.sh"
 
 echo ""
 echo "======================================"
-echo "🎉 ВСЁ ГОТОВО"
-echo "📄 LOG: $LOG"
+echo "🎉 INSTALLATION COMPLETE"
+echo "LOG: $LOG"
 echo "======================================"
