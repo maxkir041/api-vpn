@@ -4,7 +4,7 @@ set -e
 SECRET="b1304a83a6a2f83e022cafc38a0edefd"
 
 # Возможные порты
-PORTS=(2053 2083 2087 2096)
+PORTS=(8443 2053 2083 2087 2096)
 
 echo "📦 Проверка Docker..."
 if ! command -v docker &>/dev/null; then
